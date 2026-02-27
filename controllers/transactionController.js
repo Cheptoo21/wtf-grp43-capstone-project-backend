@@ -1,13 +1,9 @@
 import Transaction from '../models/Transaction.js';
 
-// ─── Add a transaction ───────────────────────────────────────────
-// The frontend AI already parsed the input — backend just saves it
-// POST /api/transactions
 export const addTransaction = async (req, res) => {
   try {
     const { rawText, transactionType, item, amount, date, currency } = req.body;
 
-    // Validate required fields
     if (!transactionType || !item || !amount) {
       return res.status(400).json({
         success: false,
@@ -31,8 +27,6 @@ export const addTransaction = async (req, res) => {
   }
 };
 
-// ─── Get all transactions for logged-in user ─────────────────────
-// GET /api/transactions
 export const getTransactions = async (req, res) => {
   try {
     const transactions = await Transaction.find({ user: req.user.id }).sort({ date: -1 });
@@ -43,8 +37,6 @@ export const getTransactions = async (req, res) => {
   }
 };
 
-// ─── Delete a transaction ─────────────────────────────────────────
-// DELETE /api/transactions/:id
 export const deleteTransaction = async (req, res) => {
   try {
     const transaction = await Transaction.findById(req.params.id);
@@ -65,8 +57,7 @@ export const deleteTransaction = async (req, res) => {
   }
 };
 
-// ─── Profit Summary ───────────────────────────────────────────────
-// GET /api/transactions/summary
+
 export const getSummary = async (req, res) => {
   try {
     const transactions = await Transaction.find({ user: req.user.id });
@@ -95,8 +86,6 @@ export const getSummary = async (req, res) => {
   }
 };
 
-// ─── Analytics ────────────────────────────────────────────────────
-// GET /api/transactions/analytics
 export const getAnalytics = async (req, res) => {
   try {
     const transactions = await Transaction.find({ user: req.user.id });
@@ -108,7 +97,6 @@ export const getAnalytics = async (req, res) => {
     const sales = transactions.filter((t) => t.transactionType === 'sale');
     const expenses = transactions.filter((t) => t.transactionType === 'expense');
 
-    // ── 1. Most sold items ──────────────────────────────────────
     const itemSalesCount = {};
     sales.forEach((t) => {
       const key = t.item.toLowerCase();
@@ -119,7 +107,6 @@ export const getAnalytics = async (req, res) => {
       .slice(0, 10)
       .map(([item, count]) => ({ item, count }));
 
-    // ── 2. Most common expenses ─────────────────────────────────
     const expenseCount = {};
     expenses.forEach((t) => {
       const key = t.item.toLowerCase();
@@ -130,7 +117,6 @@ export const getAnalytics = async (req, res) => {
       .slice(0, 10)
       .map(([item, count]) => ({ item, count }));
 
-    // ── 3. Transactions by day of week ──────────────────────────
     const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
     const byDayOfWeek = {};
     days.forEach((d) => (byDayOfWeek[d] = 0));
@@ -139,7 +125,6 @@ export const getAnalytics = async (req, res) => {
       byDayOfWeek[day]++;
     });
 
-    // ── 4. Most requested item per day of week (sales only) ────
     const itemsByDay = {};
     days.forEach((d) => (itemsByDay[d] = {}));
     sales.forEach((t) => {
@@ -158,7 +143,6 @@ export const getAnalytics = async (req, res) => {
       }
     });
 
-    // ── 5. Monthly breakdown ────────────────────────────────────
     const monthlyBreakdown = {};
     transactions.forEach((t) => {
       const month = new Date(t.date).toLocaleString('default', {

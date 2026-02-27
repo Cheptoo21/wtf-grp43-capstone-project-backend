@@ -1,19 +1,16 @@
 import { GoogleGenAI } from "@google/genai";
 import jwt from "jsonwebtoken";
-import User from "../models/User.js"; // make sure you have a User model
+import User from "../models/User.js"; 
 
-/**
- * Middleware-style token verification
- */
+
 const verifyToken = async (req, res, next) => {
   const authHeader = req.headers.authorization;
-  console.log("Auth Header:", authHeader); // Debugging line
 
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
     return res.status(401).json({ success: false, message: "No token provided" });
   }
 
-  const token = authHeader.split(" ")[1]; // remove "Bearer "
+  const token = authHeader.split(" ")[1]; 
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
@@ -23,24 +20,19 @@ const verifyToken = async (req, res, next) => {
       return res.status(401).json({ success: false, message: "Invalid token" });
     }
 
-    req.user = user; // attach user to request
+    req.user = user; 
     next();
   } catch (err) {
     return res.status(401).json({ success: false, message: "Token verification failed" });
   }
 };
 
-/**
- * POST /api/ai/extract
- * Takes a transcript and returns structured JSON using Gemini
- */
+
 export const extractTransaction = [
-  verifyToken, // first verify token
+  verifyToken, 
   async (req, res) => {
     try {
       const { transcript } = req.body;
-      console.log("Transcript:", transcript); // Debugging line
-
       if (!transcript) {
         return res
           .status(400)
@@ -68,20 +60,14 @@ export const extractTransaction = [
         ],
       });
 
-      console.log("AI Response:", response); // Debugging line
-
       const candidate = response.candidates?.[0];
     if (!candidate) {
       return res.status(500).json({ success: false, message: "No AI response" });
     }
 
-    // Gemini returns content as array of objects; find the text type
     const rawText = candidate.content.parts[0]?.text;
     const cleaned = rawText.replace(/```json|```/gi, "").trim();
 
-    console.log("AI Response Text:", cleaned); //
-
-      // const rawText = response.text;
 
       let parsed;
       try {

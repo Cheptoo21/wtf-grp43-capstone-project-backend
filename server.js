@@ -15,7 +15,7 @@ const app = express();
 app.use(express.json());
 
 // Routes
-app.use(cors({'origin': 'http://localhost:5173'}));
+app.use(cors({'origin': process.env.FRONTEND_URL}));
 app.use('/api/auth', authRoutes);
 app.use('/api/transactions', transactionRoutes);
 app.use('/api/voice', voiceRoutes);

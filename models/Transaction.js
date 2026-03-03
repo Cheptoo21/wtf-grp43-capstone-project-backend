@@ -8,7 +8,7 @@ const transactionSchema = new mongoose.Schema(
       required: true,
     },
     rawText: {
-      type: String, // The original voice/text input from the user
+      type: String, 
     },
     transactionType: {
       type: String,
@@ -31,7 +31,7 @@ const transactionSchema = new mongoose.Schema(
     },
     currency: {
       type: String,
-      default: 'NGN', // Nigeria Naira — adjust per user country
+      default: 'NGN', 
     },
   },
   { timestamps: true }

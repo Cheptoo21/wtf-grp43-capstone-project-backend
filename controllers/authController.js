@@ -21,7 +21,6 @@ const sendTokenResponse = (user, statusCode, res) => {
   });
 };
 
-// @route POST /api/auth/signup
 export const signup = async (req, res) => {
   try {
     const { name, email, password } = req.body;
@@ -38,7 +37,6 @@ export const signup = async (req, res) => {
   }
 };
 
-// @route POST /api/auth/login
 export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -58,7 +56,6 @@ export const login = async (req, res) => {
   }
 };
 
-// @route GET /api/auth/me
 export const getMe = async (req, res) => {
   try {
     const user = await User.findById(req.user.id);

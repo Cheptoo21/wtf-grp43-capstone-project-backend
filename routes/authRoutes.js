@@ -7,6 +7,6 @@ const router = express.Router();
 
 router.post('/signup', signup);
 router.post('/login', login);
-router.get('/me', protect, getMe); // protected route example
+router.get('/me', protect, getMe); 
 
 export default router;

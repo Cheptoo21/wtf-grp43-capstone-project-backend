@@ -29,7 +29,8 @@ export const addTransaction = async (req, res) => {
 
 export const getTransactions = async (req, res) => {
   try {
-    const transactions = await Transaction.find({ user: req.user.id }).sort({ date: -1 });
+    const limit = parseInt(req.query.limit) || 10;
+    const transactions = await Transaction.find({ user: req.user.id }).sort({ date: -1 }).limit(limit);
 
     res.status(200).json({ success: true, count: transactions.length, transactions });
   } catch (error) {
@@ -58,29 +59,102 @@ export const deleteTransaction = async (req, res) => {
 };
 
 
-export const getSummary = async (req, res) => {
+export const getDailySummary = async (req, res) => {
   try {
-    const transactions = await Transaction.find({ user: req.user.id });
+    const now = new Date();
+    const startToday = new Date(now.setHours(0, 0, 0, 0));
+    const endToday = new Date(now.setHours(23, 59, 59, 999));
 
-    const totalSales = transactions
+    const startYesterday = new Date(startToday);
+    startYesterday.setDate(startYesterday.getDate() - 1);
+    const endYesterday = new Date(endToday);
+    endYesterday.setDate(endYesterday.getDate() - 1);
+
+    //Monthly transactions
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+
+    const monthTransactions = await Transaction.find({
+      user: req.user.id,
+      date: { $gte: startOfMonth, $lte: endOfMonth },
+    });
+
+    const monthlyRevenue = monthTransactions
       .filter((t) => t.transactionType === 'sale')
       .reduce((sum, t) => sum + t.amount, 0);
 
-    const totalExpenses = transactions
-      .filter((t) => t.transactionType === 'expense')
-      .reduce((sum, t) => sum + t.amount, 0);
+    // Top Selling Item of the Month
+    const itemSalesCount = {};
+    monthTransactions.forEach((t) => {
+      if (t.transactionType === 'sale') {
+        const key = t.item.toLowerCase();
+        itemSalesCount[key] = (itemSalesCount[key] || 0) + t.quantity;
+        console.log(`Counting item: ${key}, quantity: ${t.quantity}, total so far: ${itemSalesCount[key]}`);
+      }
+    });
+    const topSellingItems = Object.entries(itemSalesCount)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 10)
+      .map(([item, count]) => ({ item, count }));
+    const topSellingItem = topSellingItems.length > 0 ? topSellingItems[0].item : null;    
 
-    const profit = totalSales - totalExpenses;
+    const todayTransactions = await Transaction.find({
+      user: req.user.id,
+      date: { $gte: startToday, $lte: endToday },
+    });
+    const yesterdayTransactions = await Transaction.find({
+      user: req.user.id,
+      date: { $gte: startYesterday, $lte: endYesterday },
+    });
+    const firstTransaction = await Transaction.findOne({ user: req.user.id }).sort({ date: 1 });
+    const currency = firstTransaction ? firstTransaction.currency : 'NGN';
+
+    const calculateProfit = (transactions) => {
+      const sales = transactions
+        .filter((t) => t.transactionType === 'sale')
+        .reduce((sum, t) => sum + t.amount, 0);
+      const expenses = transactions
+        .filter((t) => t.transactionType === 'expense')
+        .reduce((sum, t) => sum + t.amount, 0);
+      return sales - expenses;
+    };
+    const todayProfit = calculateProfit(todayTransactions);
+    const yesterdayProfit = calculateProfit(yesterdayTransactions);
+    const profitChange = yesterdayProfit === 0 ? null : ((todayProfit - yesterdayProfit) / Math.abs(yesterdayProfit)) * 100;
 
     res.status(200).json({
       success: true,
-      summary: {
-        totalSales,
-        totalExpenses,
-        profit,
-        totalTransactions: transactions.length,
-      },
+      data: {
+        todayProfit,
+        yesterdayProfit,
+        currency,
+        monthlyRevenue,
+        topSellingItem,
+        profitChange: profitChange !== null ? profitChange.toFixed(2) : 0.00,
+      }
     });
+
+    // const transactions = await Transaction.find({ user: req.user.id });
+
+    // const totalSales = transactions
+    //   .filter((t) => t.transactionType === 'sale')
+    //   .reduce((sum, t) => sum + t.amount, 0);
+
+    // const totalExpenses = transactions
+    //   .filter((t) => t.transactionType === 'expense')
+    //   .reduce((sum, t) => sum + t.amount, 0);
+
+    // const profit = totalSales - totalExpenses;
+
+    // res.status(200).json({
+    //   success: true,
+    //   summary: {
+    //     totalSales,
+    //     totalExpenses,
+    //     profit,
+    //     totalTransactions: transactions.length,
+    //   },
+    // });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }

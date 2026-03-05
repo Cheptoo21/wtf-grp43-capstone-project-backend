@@ -38,13 +38,10 @@ export const extractTransaction = [
           .status(400)
           .json({ success: false, message: "Transcript is required" });
       }
-
-      // Initialize Gemini client
       const ai = new GoogleGenAI({
         apiKey: process.env.GEMINI_API_KEY,
       });
 
-      // Call the Gemini model
       const response = await ai.models.generateContent({
         model: "gemini-2.5-flash",
         contents: [
@@ -54,7 +51,8 @@ export const extractTransaction = [
              "transactionType": "sale" | "expense",
              "item": string,
              "amount": number,
-             "currency": "NGN"
+             "currency": "NGN",
+             "quantity": number,
            }
            Output only valid JSON with those keys.`,
         ],

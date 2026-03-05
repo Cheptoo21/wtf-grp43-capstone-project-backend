@@ -25,6 +25,11 @@ const transactionSchema = new mongoose.Schema(
       required: [true, 'Amount is required'],
       min: [0, 'Amount cannot be negative'],
     },
+    quantity: {
+      type: Number,
+      default: 1,
+      min: [1, 'Quantity must be at least 1'],
+    },
     date: {
       type: Date,
       default: Date.now,

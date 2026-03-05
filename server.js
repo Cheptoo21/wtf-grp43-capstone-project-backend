@@ -1,11 +1,12 @@
-import express from "express";
-import dotenv from "dotenv";
-import connectDB from "./config/db.js";
-import cors from "cors";
-import authRoutes from "./routes/authRoutes.js";
-import transactionRoutes from "./routes/transactionRoutes.js";
-import voiceRoutes from "./routes/voiceRoutes.js";
-import aiRoutes from "./routes/aiRoutes.js";
+import express from 'express';
+import dotenv from 'dotenv';
+import connectDB from './config/db.js';
+import cors from 'cors';
+import authRoutes from './routes/authRoutes.js';
+import transactionRoutes from './routes/transactionRoutes.js';
+import voiceRoutes from './routes/voiceRoutes.js';
+import aiRoutes from './routes/aiRoutes.js';
+import firebaseAuthRoutes from './routes/firebaseAuthRoutes.js';
 
 dotenv.config();
 connectDB();
@@ -22,11 +23,13 @@ app.use(
 
 app.use(express.json());
 
-// ✅ Routes - these were missing!
-app.use("/api/auth", authRoutes);
-app.use("/api/transactions", transactionRoutes);
-app.use("/api/voice", voiceRoutes);
-app.use("/api", aiRoutes);
+// Routes
+app.use(cors({'origin': process.env.FRONTEND_URL}));
+app.use('/api/auth', authRoutes);
+app.use('/api/firebaseauth', firebaseAuthRoutes);
+app.use('/api/transactions', transactionRoutes);
+app.use('/api/voice', voiceRoutes);
+app.use('/api', aiRoutes);
 
 // Health check
 app.get("/", (req, res) => res.json({ message: "API is running" }));

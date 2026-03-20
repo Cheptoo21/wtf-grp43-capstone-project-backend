@@ -117,8 +117,7 @@ export const getDailySummary = async (req, res) => {
       .sort((a, b) => b[1] - a[1])
       .slice(0, 10)
       .map(([item, count]) => ({ item, count }));
-    const topSellingItem = topSellingItems.length > 0 ? topSellingItems[0].item : null; 
-    console.log(topSellingItem)   
+    const topSellingItem = topSellingItems.length > 0 ? topSellingItems[0].item : null;  
 
     const todayTransactions = await Transaction.find({
       user: req.user.id,
@@ -163,21 +162,6 @@ export const getDailySummary = async (req, res) => {
 export const getAnalytics = async (req, res) => {
   try {
     const transactions = await Transaction.find({ user: req.user.id });
-
-    if (transactions.length === 0) {
-      const emptyAnalytics = {
-      topSellingItems: [],
-      topExpenses: [],
-      transactionsByDayOfWeek: Object.fromEntries(days.map(d => [d, 0])),
-      topItemByDayOfWeek: Object.fromEntries(days.map(d => [d, null])),
-      monthlyBreakdown: {},
-      monthlySales: [],
-      totalSales: 0,
-      totalExpenses: 0,
-      totalProfit: 0,
-    };
-      return res.status(200).json({ success: true, analytics: emptyAnalytics });
-    }
     const sales = transactions.filter((t) => t.transactionType === "sale");
     const expenses = transactions.filter((t) => t.transactionType === "expense");
 

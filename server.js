@@ -13,14 +13,6 @@ connectDB();
 
 const app = express();
 
-// CORS first
-app.use(
-  cors({
-    origin: "https://voxledger.onrender.com",
-    credentials: true,
-  }),
-);
-
 app.use(express.json());
 
 // Routes

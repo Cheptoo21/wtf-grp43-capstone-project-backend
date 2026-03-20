@@ -139,9 +139,24 @@ export const getDailySummary = async (req, res) => {
         .reduce((sum, t) => sum + t.amount, 0);
       return sales - expenses;
     };
+    const todaySales = todayTransactions
+        .filter((t) => t.transactionType === 'sale')
+        .reduce((sum, t) => sum + t.amount, 0);
+    const todayExpenses = todayTransactions
+        .filter((t) => t.transactionType === 'expense')
+        .reduce((sum, t) => sum + t.amount, 0);
     const todayProfit = calculateProfit(todayTransactions);
     const yesterdayProfit = calculateProfit(yesterdayTransactions);
-    const profitChange = yesterdayProfit === 0 || todayProfit === 0 ? 0 : ((todayProfit - yesterdayProfit) / Math.abs(yesterdayProfit)) * 100;
+    const profitChange =
+  yesterdayProfit === 0 && todaySales === 0 && todayExpenses === 0
+    ? 0
+    : yesterdayProfit === 0
+    ? (todayProfit / (todaySales + todayExpenses)) * 100
+    : todaySales === 0 && yesterdayProfit === 0
+    ? yesterdayProfit
+    : ((todayProfit - yesterdayProfit) / Math.abs(yesterdayProfit)) * 100;
+    console.log((todayProfit / (todaySales + todayExpenses)) * 100);
+    console.log(profitChange)
     res.status(200).json({
       success: true,
       data: {

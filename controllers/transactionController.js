@@ -155,8 +155,6 @@ export const getDailySummary = async (req, res) => {
     : todaySales === 0 && yesterdayProfit === 0
     ? yesterdayProfit
     : ((todayProfit - yesterdayProfit) / Math.abs(yesterdayProfit)) * 100;
-    console.log((todayProfit / (todaySales + todayExpenses)) * 100);
-    console.log(profitChange)
     res.status(200).json({
       success: true,
       data: {

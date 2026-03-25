@@ -185,6 +185,8 @@ export const getAnalytics = async (req, res) => {
         itemSalesCount[key] = (itemSalesCount[key] || 0) + t.quantity;
       }
     });
+    const firstTransaction = await Transaction.findOne({ user: req.user.id }).sort({ date: 1 });
+    const currency = firstTransaction ? firstTransaction.currency : 'NGN';
     
     const topSellingItems = Object.entries(itemSalesCount)
       .sort((a, b) => b[1] - a[1])
@@ -293,6 +295,7 @@ export const getAnalytics = async (req, res) => {
         topItemByDayOfWeek: topItemByDay,
         monthlyBreakdown: formattedMonthlyBreakdown,
         monthlySales, 
+        currency
       }
 
       if (transactions.length === 0) {
